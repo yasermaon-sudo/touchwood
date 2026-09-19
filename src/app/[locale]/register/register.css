@@ -679,3 +679,40 @@
   }
 }
 
+
+
+.register-message {
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+  animation: register-fade-in 0.25s ease;
+}
+
+.register-error {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+
+.register-success {
+  color: #176d29;
+  background: #eaf6ec;
+  border: 1px solid #b7dfbe;
+}
+
+@keyframes register-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
