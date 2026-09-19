@@ -1,4 +1,4 @@
-const API_URL = "https://touchwood-production.up.railway.app/api";
+const API_URL = "https://humorous-integrity-production.up.railway.app/api";
 
 export const getProducts = async () => {
   const response = await fetch(`${API_URL}/products`);
