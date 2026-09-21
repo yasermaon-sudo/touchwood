@@ -153,9 +153,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({
-      email,
-    });
+    const user = await User.findOne({ email, }).select("+password");
 
     if (!user) {
       return res.status(401).json({
@@ -350,8 +348,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId);
-
+const user = await User.findById(userId).select("+password");
     if (!user) {
       return res.status(404).json({
         message: "User not found",

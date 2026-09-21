@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Eye,
   EyeOff,
@@ -14,16 +14,20 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { logIn } from "@/services/api";
+
 import "./login.css";
 
 export default function LoginPage() {
   const params = useParams();
+  const router = useRouter();
 
   const locale = params?.locale === "en" ? "en" : "ar";
   const isArabic = locale === "ar";
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -37,21 +41,40 @@ export default function LoginPage() {
       ...prev,
       [name]: value,
     }));
+
+    if (errorMessage) {
+      setErrorMessage("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (loading) return;
+
     setLoading(true);
+    setErrorMessage("");
 
     try {
-      // سيتم ربط تسجيل الدخول بالـ API لاحقًا
-      console.log("Login data:", formData);
+      const data = await logIn({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
-      // محاكاة مؤقتة لطلب تسجيل الدخول
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      router.push(`/${locale}/shop`);
     } catch (error) {
       console.error("Login error:", error);
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : isArabic
+          ? "حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى."
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -62,7 +85,6 @@ export default function LoginPage() {
       className={`login-page ${isArabic ? "login-ar" : "login-en"}`}
       dir={isArabic ? "rtl" : "ltr"}
     >
-      {/* Background */}
       <div className="login-background">
         <div className="login-glow login-glow-one" />
         <div className="login-glow login-glow-two" />
@@ -80,16 +102,11 @@ export default function LoginPage() {
         <div className="login-pattern" />
       </div>
 
-      {/* Top Logo */}
-      
-
-      {/* Main Content */}
       <section className="login-content">
         <div className="login-card">
           <div className="login-card-glow" />
 
           <div className="login-card-content">
-            {/* Logo */}
             <div className="login-logo-wrapper">
               <div className="login-logo-circle">
                 <Image
@@ -102,7 +119,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Heading */}
             <div className="login-heading">
               <span className="login-eyebrow">
                 {isArabic ? "مرحبًا بعودتك" : "WELCOME BACK"}
@@ -121,9 +137,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Form */}
             <form className="login-form" onSubmit={handleSubmit}>
-              {/* Email */}
               <div className="login-field">
                 <label htmlFor="email">
                   {isArabic ? "البريد الإلكتروني" : "Email Address"}
@@ -144,12 +158,12 @@ export default function LoginPage() {
                         : "Enter your email address"
                     }
                     autoComplete="email"
+                    disabled={loading}
                     required
                   />
                 </div>
               </div>
 
-              {/* Password */}
               <div className="login-field">
                 <label htmlFor="password">
                   {isArabic ? "كلمة المرور" : "Password"}
@@ -170,7 +184,7 @@ export default function LoginPage() {
                         : "Enter your password"
                     }
                     autoComplete="current-password"
-                    required
+                    disabled={loading}
                   />
 
                   <button
@@ -179,6 +193,7 @@ export default function LoginPage() {
                     onClick={() =>
                       setShowPassword((prev) => !prev)
                     }
+                    disabled={loading}
                     aria-label={
                       showPassword
                         ? isArabic
@@ -198,32 +213,46 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Submit */}
+              {errorMessage && (
+                <div className="login-message login-error" role="alert">
+                  {errorMessage}
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="login-submit"
                 disabled={loading}
               >
-                <span>
-                  {loading
-                    ? isArabic
-                      ? "جارٍ تسجيل الدخول..."
-                      : "Signing in..."
-                    : isArabic
-                    ? "تسجيل الدخول"
-                    : "Sign In"}
-                </span>
+                {loading ? (
+                  <>
+                    <span
+                      className="login-spinner"
+                      aria-hidden="true"
+                    />
 
-                {!loading &&
-                  (isArabic ? (
-                    <ArrowLeft size={19} />
-                  ) : (
-                    <ArrowRight size={19} />
-                  ))}
+                    <span>
+                      {isArabic
+                        ? "جارٍ تسجيل الدخول..."
+                        : "Signing in..."}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      {isArabic ? "تسجيل الدخول" : "Sign In"}
+                    </span>
+
+                    {isArabic ? (
+                      <ArrowLeft size={19} />
+                    ) : (
+                      <ArrowRight size={19} />
+                    )}
+                  </>
+                )}
               </button>
             </form>
 
-            {/* Register */}
             <div className="login-register">
               <span>
                 {isArabic
@@ -239,8 +268,6 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-
-       
       </section>
     </main>
   );

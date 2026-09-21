@@ -36,8 +36,15 @@ export const logIn = async (userData) => {
 
   const data = await response.json();
 
+  console.log("Login status:", response.status);
+  console.log("Login response:", data);
+
   if (!response.ok) {
-    throw new Error(data.message || "Login failed");
+    throw new Error(
+      data.message ||
+        data.error ||
+        "Login failed"
+    );
   }
 
   return data;
